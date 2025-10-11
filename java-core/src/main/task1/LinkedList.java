@@ -36,25 +36,93 @@ public class LinkedList<T> {
     current.next = newNode;
   }
 
-  public void add(int index, T el){
-    throw new UnsupportedOperationException();
+  public void add(int index, T element) {
+    if (index < 0 || index > size()) {
+      throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
+    }
+    if (index == 0) {
+      addFirst(element);
+      return;
+    }
+    Node<T> newNode = new Node<>(element);
+    Node<T> current = head;
+    for (int i = 0; i < index - 1; i++) {
+      current = current.next;
+    }
+    newNode.next = current.next;
+    current.next = newNode;
   }
-  public void getFirst(){
-    throw new UnsupportedOperationException();
+
+  public T getFirst() {
+    if (head == null) {
+      throw new IllegalStateException("List is empty");
+    }
+    return head.data;
   }
-  public void getLast(T el){
-    throw new UnsupportedOperationException();
+
+  public T getLast() {
+    if (head == null) {
+      throw new IllegalStateException("List is empty");
+    }
+    Node<T> current = head;
+    while (current.next != null) {
+      current = current.next;
+    }
+    return current.data;
   }
-  public void get(int index){
-    throw new UnsupportedOperationException();
+
+  public T get(int index) {
+    if (index < 0 || index >= size()) {
+      throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
+    }
+    Node<T> current = head;
+    for (int i = 0; i < index; i++) {
+      current = current.next;
+    }
+    return current.data;
   }
-  public void removeFirst(){
-    throw new UnsupportedOperationException();
+
+  public T removeFirst() {
+    if (head == null) {
+      throw new IllegalStateException("List is empty");
+    }
+    T data = head.data;
+    head = head.next;
+    return data;
   }
-  public void removeLast(){
-    throw new UnsupportedOperationException();
+
+  public T removeLast() {
+    if (head == null) {
+      throw new IllegalStateException("List is empty");
+    }
+    if (head.next == null) {
+      T data = head.data;
+      head = null;
+      return data;
+    }
+    Node<T> current = head;
+    while (current.next.next != null) {
+      current = current.next;
+    }
+    T data = current.next.data;
+    current.next = null;
+    return data;
   }
-  public void remove(int index){
-    throw new UnsupportedOperationException();
+
+  public T remove(int index) {
+    if (index < 0 || index >= size()) {
+      throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
+    }
+    if (index == 0) {
+      return removeFirst();
+    }
+    Node<T> current = head;
+    for (int i = 0; i < index - 1; i++) {
+      current = current.next;
+    }
+    T data = current.next.data;
+    current.next = current.next.next;
+    return data;
   }
+
 }
