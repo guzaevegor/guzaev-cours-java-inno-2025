@@ -11,7 +11,7 @@ public class MiniSpringTest {
 
   @BeforeEach
   public void setUp() throws Exception {
-    MiniApplicationContext context = new MiniApplicationContext("task4");
+    this.context = new MiniApplicationContext("task4");
   }
 
   @Test
