@@ -2,7 +2,9 @@ package task3;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+
 import java.util.concurrent.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class RobotFactoryTest {
@@ -11,10 +13,11 @@ class RobotFactoryTest {
   @Timeout(15)
   void testBasicSimulationCompletes() throws InterruptedException {
     BlockingQueue<RobotPart> storage = new LinkedBlockingQueue<>();
+    Object dayLock = new Object();
 
-    Factory factory = new Factory(storage);
-    Faction world = new Faction("World", storage);
-    Faction wednesday = new Faction("Wednesday", storage);
+    Factory factory = new Factory(storage, dayLock);
+    Faction world = new Faction("World", storage, dayLock);
+    Faction wednesday = new Faction("Wednesday", storage, dayLock);
 
     Thread factoryThread = new Thread(factory);
     Thread worldThread = new Thread(world);
@@ -43,7 +46,7 @@ class RobotFactoryTest {
       storage.put(RobotPart.HEAD);
     }
 
-    Faction faction = new Faction("TestFaction", storage);
+    Faction faction = new Faction("TestFaction", storage, new Object());
 
     CountDownLatch latch = new CountDownLatch(1);
     Thread testThread = new Thread(() -> {
@@ -68,7 +71,8 @@ class RobotFactoryTest {
   @Timeout(15)
   void testFactoryProducesCorrectAmountOfParts() throws InterruptedException {
     BlockingQueue<RobotPart> storage = new LinkedBlockingQueue<>();
-    Factory factory = new Factory(storage);
+    Object dayLock = new Object();
+    Factory factory = new Factory(storage, dayLock);
 
     Thread factoryThread = new Thread(factory);
     factoryThread.start();
@@ -127,7 +131,7 @@ class RobotFactoryTest {
     storage.put(RobotPart.HAND);
     storage.put(RobotPart.FEET);
 
-    Faction faction = new Faction("TestFaction", storage);
+    Faction faction = new Faction("TestFaction", storage, new Object());
 
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Future<?> future = executor.submit(() -> {

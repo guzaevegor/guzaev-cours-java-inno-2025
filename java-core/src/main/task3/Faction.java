@@ -10,10 +10,12 @@ public class Faction implements Runnable {
   private final Map<RobotPart, Integer> inventory = new ConcurrentHashMap<>();
   private int robotsBuilt = 0;
   private final int MAX_PARTS_PER_NIGHT = 5;
+  private final Object dayLock;
 
-  public Faction(String name, BlockingQueue<RobotPart> storage) {
+  public Faction(String name, BlockingQueue<RobotPart> storage, Object dayLock) {
     this.name = name;
     this.factoryStorage = storage;
+    this.dayLock = dayLock;
 
     for (RobotPart part : RobotPart.values()) {
       inventory.put(part, 0);
@@ -23,16 +25,20 @@ public class Faction implements Runnable {
   @Override
   public void run() {
     for (int day = 1; day <= 100; day++) {
-      collectParts();
-
-      buildRobots();
-
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+      synchronized (dayLock) {
+        try {
+          dayLock.wait();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          return;
+        }
       }
+
+      collectParts();
+      buildRobots();
     }
+
+    System.out.println(name + " built total: " + robotsBuilt);
   }
 
   void collectParts() {
@@ -47,21 +53,10 @@ public class Faction implements Runnable {
   }
 
   void buildRobots() {
-    while (canBuildRobot()) {
-      inventory.merge(RobotPart.HEAD, -1, Integer::sum);
-      inventory.merge(RobotPart.TORSO, -1, Integer::sum);
-      inventory.merge(RobotPart.HAND, -2, Integer::sum);
-      inventory.merge(RobotPart.FEET, -2, Integer::sum);
-
+    while (Robot.canBuildFrom(inventory)) {
+      Robot.buildFrom(inventory);
       robotsBuilt++;
     }
-  }
-
-  private boolean canBuildRobot() {
-    return inventory.get(RobotPart.HEAD) >= 1 &&
-        inventory.get(RobotPart.TORSO) >= 1 &&
-        inventory.get(RobotPart.HAND) >= 2 &&
-        inventory.get(RobotPart.FEET) >= 2;
   }
 
   public int getRobotsBuilt() {
