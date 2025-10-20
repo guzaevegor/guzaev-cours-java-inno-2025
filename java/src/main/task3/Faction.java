@@ -3,6 +3,7 @@ package task3;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CyclicBarrier;
 
 public class Faction implements Runnable {
   private final String name;
@@ -10,12 +11,12 @@ public class Faction implements Runnable {
   private final Map<RobotPart, Integer> inventory = new ConcurrentHashMap<>();
   private int robotsBuilt = 0;
   private final int MAX_PARTS_PER_NIGHT = 5;
-  private final Object dayLock;
+  private final CyclicBarrier barrier;
 
-  public Faction(String name, BlockingQueue<RobotPart> storage, Object dayLock) {
+  public Faction(String name, BlockingQueue<RobotPart> storage, CyclicBarrier barrier) {
     this.name = name;
     this.factoryStorage = storage;
-    this.dayLock = dayLock;
+    this.barrier = barrier;
 
     for (RobotPart part : RobotPart.values()) {
       inventory.put(part, 0);
@@ -24,18 +25,18 @@ public class Faction implements Runnable {
 
   @Override
   public void run() {
-    for (int day = 1; day <= 100; day++) {
-      synchronized (dayLock) {
-        try {
-          dayLock.wait();
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          return;
-        }
-      }
+    try {
+      for (int day = 1; day <= 100; day++) {
+        barrier.await();  // ждать начала дня (сигнал от фабрики)
 
-      collectParts();
-      buildRobots();
+        collectParts();
+        buildRobots();
+
+        barrier.await();  // сообщить фабрике, что готово
+      }
+    } catch (Exception e) {
+      Thread.currentThread().interrupt();
+      return;
     }
 
     System.out.println(name + " built total: " + robotsBuilt);
