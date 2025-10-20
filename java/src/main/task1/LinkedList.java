@@ -1,5 +1,6 @@
 package task1;
 
+
 public class LinkedList<T> {
 
   private Node<T> head;
